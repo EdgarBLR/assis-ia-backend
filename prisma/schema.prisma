@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String    @id @default(uuid())
+  name      String
+  plan      String
+  createdAt DateTime  @default(now())
+  companies Company[]
+  users     User[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String
+  tenantId  String
+  companyId String?
+  createdAt DateTime @default(now())
+  company   Company? @relation(fields: [companyId], references: [id])
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model Company {
+  id            String         @id @default(uuid())
+  name          String
+  segment       String
+  regime        String
+  tenantId      String
+  status        String         @default("ACTIVE")
+  createdAt     DateTime       @default(now())
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  processes     Process[]
+  subscriptions Subscription[]
+  users         User[]
+}
+
+model Subscription {
+  id               String   @id @default(uuid())
+  companyId        String
+  stripeId         String?  @unique
+  plan             String
+  status           String
+  currentPeriodEnd DateTime
+  createdAt        DateTime @default(now())
+  company          Company  @relation(fields: [companyId], references: [id])
+}
+
+model Process {
+  id        String   @id @default(uuid())
+  name      String
+  status    String
+  companyId String
+  createdAt DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id])
+  steps     Step[]
+}
+
+model Step {
+  id        String   @id @default(uuid())
+  name      String
+  status    String
+  dueDate   DateTime
+  processId String
+  process   Process  @relation(fields: [processId], references: [id])
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  fileName  String
+  type      String
+  stepId    String?
+  companyId String?
+  createdAt DateTime @default(now())
+}
