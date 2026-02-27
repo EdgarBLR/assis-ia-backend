@@ -1,5 +1,4 @@
 const fastify = require('fastify')({ logger: true });
-const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
@@ -7,7 +6,7 @@ const util = require('util');
 const { pipeline } = require('stream');
 const pump = util.promisify(pipeline);
 
-const prisma = new PrismaClient();
+const prisma = require('./src/lib/prisma');
 const { documentQueue, isDocumentProcessingEnabled } = require('./src/jobs/documentProcessor');
 const billingService = require('./src/services/billingService');
 const analyticsService = require('./src/services/analyticsService');

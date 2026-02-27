@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 const analyticsService = {
     /**
@@ -11,9 +10,9 @@ const analyticsService = {
             select: { id: true }
         });
         const companyIds = companies.map((company) => company.id);
+        const clientsCount = companies.length;
 
-        const [clientsCount, docsCount, pendingTasks] = await Promise.all([
-            prisma.company.count({ where: { tenantId } }),
+        const [docsCount, pendingTasks] = await Promise.all([
             prisma.document.count({
                 where: companyIds.length > 0 ? {
                     companyId: { in: companyIds }
