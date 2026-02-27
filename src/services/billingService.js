@@ -1,21 +1,23 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_mock');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
+
+const PLAN_PRICES = {
+    'PRO': 'price_mock_pro_123',
+    'ENTERPRISE': 'price_mock_ent_456'
+};
 
 const billingService = {
     /**
      * Cria uma sessão de checkout para assinatura.
      */
     async createCheckoutSession(companyId, plan) {
-        const prices = {
-            'PRO': 'price_mock_pro_123',
-            'ENTERPRISE': 'price_mock_ent_456'
-        };
-
+        if (!PLAN_PRICES[plan]) {
+            throw new Error(`Plano inválido: ${plan}`);
+        }
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{
-                price: prices[plan],
+                price: PLAN_PRICES[plan],
                 quantity: 1,
             }],
             mode: 'subscription',

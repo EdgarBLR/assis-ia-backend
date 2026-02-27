@@ -2,9 +2,7 @@ const { Queue, Worker } = require('bullmq');
 const IORedis = require('ioredis');
 const ocrService = require('../services/ocrService');
 const aiService = require('../services/aiService');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const isDocumentProcessingEnabled = process.env.ENABLE_DOCUMENT_PROCESSING === 'true';
 
 let documentQueue = null;
