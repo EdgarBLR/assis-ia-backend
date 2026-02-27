@@ -2,48 +2,66 @@
 
 Backend em Node.js com Fastify, Prisma, BullMQ/Redis, OCR (Tesseract) e integrações com OpenAI/Stripe.
 
-## O que falta para rodar
+## O que preciso fazer para rodar?
 
-Para subir o projeto localmente, você precisa garantir estes pré-requisitos:
+### 1) Instalar pré-requisitos
+- **Node.js 20+** e npm
+- **PostgreSQL** ativo
+- **Redis** ativo
 
-1. **Node.js 20+** e npm.
-2. **PostgreSQL** rodando e com um banco criado.
-3. **Redis** rodando (usado pela fila BullMQ).
-4. Arquivo **`.env`** configurado (veja `.env.example`).
-5. Dependências instaladas e client Prisma gerado.
+> Se quiser subir rápido com Docker (opcional):
 
-## Variáveis de ambiente
+```bash
+docker run --name assis-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=assis_ia -p 5432:5432 -d postgres:16
+docker run --name assis-redis -p 6379:6379 -d redis:7
+```
 
-Copie o exemplo e ajuste os valores:
+### 2) Configurar variáveis de ambiente
 
 ```bash
 cp .env.example .env
 ```
 
-Principais variáveis obrigatórias:
-
+No `.env`, confira principalmente:
 - `DATABASE_URL`
 - `JWT_SECRET`
 - `REDIS_URL`
 - `OPENAI_API_KEY`
 
-Variáveis recomendadas para integrações:
-
+Também são usadas:
 - `STRIPE_SECRET_KEY`
 - `FRONTEND_URL`
 - `WHATSAPP_VERIFY_TOKEN`
 - `PORT`
 
-## Setup rápido
+### 3) Instalar dependências
 
 ```bash
 npm install
+```
+
+### 4) Preparar Prisma
+
+```bash
 npx prisma generate
 npx prisma migrate dev
+```
+
+### 5) Subir a API
+
+```bash
 npm run dev
 ```
 
-Servidor sobe em `http://localhost:3001` (ou valor de `PORT`).
+API disponível em `http://localhost:3001` (ou valor de `PORT`).
+
+## Checklist de validação rápida
+
+```bash
+curl http://localhost:3001/
+```
+
+Resposta esperada: JSON com status online.
 
 ## Endpoints principais
 
