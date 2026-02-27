@@ -8,7 +8,7 @@ const { pipeline } = require('stream');
 const pump = util.promisify(pipeline);
 
 const prisma = new PrismaClient();
-const { documentQueue } = require('./src/jobs/documentProcessor');
+const { documentQueue, isDocumentProcessingEnabled } = require('./src/jobs/documentProcessor');
 const billingService = require('./src/services/billingService');
 const analyticsService = require('./src/services/analyticsService');
 
@@ -131,6 +131,13 @@ fastify.post('/api/documents/upload', { preHandler: [fastify.authenticate] }, as
     });
 
     // 2. Adicionar na fila de processamento
+    if (!isDocumentProcessingEnabled || !documentQueue) {
+        return reply.status(503).send({
+            id: document.id,
+            error: 'Processamento de documentos desativado. Defina ENABLE_DOCUMENT_PROCESSING=true e configure o Redis.'
+        });
+    }
+
     await documentQueue.add('process-doc', {
         documentId: document.id,
         filePath: filePath

@@ -1,77 +1,78 @@
-# Backend Setup Guide
+# assis-ia-backend
 
-## 📦 What Was Created
+Backend em Node.js com Fastify, Prisma, BullMQ/Redis, OCR (Tesseract) e integrações com OpenAI/Stripe.
 
-### Files
-- `server.js` - Express server with Notion API integration
-- `.env` - Environment variables with Notion credentials
-- `test-api.js` - API testing script
+## O que preciso fazer para rodar?
 
-### Dependencies Installed
-```bash
-npm install express dotenv cors @notionhq/client
-```
+### 1) Instalar pré-requisitos
+- **Node.js 20+** e npm
+- **PostgreSQL** ativo
+- **Redis** ativo (somente se `ENABLE_DOCUMENT_PROCESSING=true`)
 
-## 🚀 Server Endpoints
-
-### 1. Health Check
-```
-GET /
-```
-Returns server status and Notion configuration status.
-
-### 2. Fetch All Tasks
-```
-POST /tarefas
-```
-Fetches all tasks from the Notion database.
-
-### 3. Fetch Tasks by Client
-```
-POST /tarefas/cliente
-Body: { "cliente": "Client Name" }
-```
-Fetches tasks filtered by client name.
-
-## ⚙️ Configuration
-
-### Environment Variables (.env)
-```
-NOTION_TOKEN=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
-NOTION_DATABASE_ID=2e42a55a7ac940cfb846b85d5f53ebc0
-PORT=3000
-```
-
-## 🧪 Testing
-
-Run the test script:
-```bash
-node test-api.js
-```
-
-## ⚠️ Important Notes
-
-### Notion Database Requirements
-Your Notion database must have a **"Cliente"** property (type: Title) for the client filter to work.
-
-### Sharing the Database
-Make sure to share your Notion database with the integration:
-1. Open database in Notion
-2. Click ⋯ menu → "Add connections"
-3. Select your integration
-
-## 🔧 Troubleshooting
-
-If tasks return `undefined`:
-- Verify the database is shared with the integration
-- Check that the Database ID is correct
-- Ensure the integration has read permissions
-- Verify the "Cliente" property exists in the database
-
-## 🚀 Running the Server
+> Se quiser subir rápido com Docker (opcional):
 
 ```bash
-node server.js
+docker run --name assis-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=assis_ia -p 5432:5432 -d postgres:16
+docker run --name assis-redis -p 6379:6379 -d redis:7
 ```
 
-Server will start on port 3000 with Notion integration ready.
+### 2) Configurar variáveis de ambiente
+
+```bash
+cp .env.example .env
+```
+
+No `.env`, confira principalmente:
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `REDIS_URL` (obrigatória quando `ENABLE_DOCUMENT_PROCESSING=true`)
+- `OPENAI_API_KEY` (obrigatória quando `ENABLE_DOCUMENT_PROCESSING=true`)
+
+Também são usadas:
+- `STRIPE_SECRET_KEY`
+- `FRONTEND_URL`
+- `WHATSAPP_VERIFY_TOKEN`
+- `PORT`
+- `ENABLE_DOCUMENT_PROCESSING` (`true` para ativar fila/worker de documentos)
+
+### 3) Instalar dependências
+
+```bash
+npm install
+```
+
+### 4) Preparar Prisma
+
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
+
+### 5) Subir a API
+
+```bash
+npm run dev
+```
+
+API disponível em `http://localhost:3001` (ou valor de `PORT`).
+
+## Checklist de validação rápida
+
+```bash
+curl http://localhost:3001/
+```
+
+Resposta esperada: JSON com status online.
+
+## Endpoints principais
+
+- `GET /` health básico.
+- `POST /register` cria tenant + admin inicial.
+- `POST /login` autenticação.
+- `GET /api/me` usuário autenticado.
+- `POST /api/documents/upload` upload e enfileiramento de processamento (retorna 503 quando o processamento estiver desativado).
+
+## Observações importantes
+
+- `OPENAI_API_KEY` é exigida apenas para o processamento/classificação por IA; a API pode subir sem ela, mas o worker de documentos falhará ao classificar/extrair dados.
+- O projeto usa fallback de segredos para desenvolvimento, mas em ambiente real é recomendado definir todas as variáveis sensíveis explicitamente.
