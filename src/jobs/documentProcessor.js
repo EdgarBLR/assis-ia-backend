@@ -5,40 +5,55 @@ const aiService = require('../services/aiService');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
-const connection = new IORedis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
-    maxRetriesPerRequest: null,
-});
+const isDocumentProcessingEnabled = process.env.ENABLE_DOCUMENT_PROCESSING === 'true';
 
-const documentQueue = new Queue('document-processing', { connection });
+let documentQueue = null;
+let documentWorker = null;
 
-const documentWorker = new Worker('document-processing', async (job) => {
-    const { documentId, filePath } = job.data;
-    console.log(`Processing document ${documentId}...`);
+if (isDocumentProcessingEnabled) {
+    const connection = new IORedis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
+        maxRetriesPerRequest: null,
+    });
 
-    try {
-        // 1. OCR
-        const text = await ocrService.extractText(filePath);
+    connection.on('error', (error) => {
+        console.error('Erro de conexão com Redis (fila de documentos):', error.message);
+    });
 
-        // 2. Classificação AI
-        const classification = await aiService.classifyDocument(text);
+    documentQueue = new Queue('document-processing', { connection });
 
-        // 3. Extração de Dados
-        const metadata = await aiService.extractData(text, classification);
+    documentWorker = new Worker('document-processing', async (job) => {
+        const { documentId, filePath } = job.data;
+        console.log(`Processing document ${documentId}...`);
 
-        // 4. Atualizar Banco de Dados
-        await prisma.document.update({
-            where: { id: documentId },
-            data: {
-                type: classification,
-                // Aqui poderíamos salvar o metadata em uma coluna JSON se existisse
-            }
-        });
+        try {
+            // 1. OCR
+            const text = await ocrService.extractText(filePath);
 
-        console.log(`Document ${documentId} processed successfully as ${classification}`);
-    } catch (error) {
-        console.error(`Error processing document ${documentId}:`, error);
-        throw error;
-    }
-}, { connection });
+            // 2. Classificação AI
+            const classification = await aiService.classifyDocument(text);
 
-module.exports = { documentQueue, documentWorker };
+            // 3. Extração de Dados
+            const metadata = await aiService.extractData(text, classification);
+
+            // 4. Atualizar Banco de Dados
+            await prisma.document.update({
+                where: { id: documentId },
+                data: {
+                    type: classification,
+                }
+            });
+
+            console.log(`Document ${documentId} processed successfully as ${classification}`);
+            return metadata;
+        } catch (error) {
+            console.error(`Error processing document ${documentId}:`, error);
+            throw error;
+        }
+    }, { connection });
+
+    documentWorker.on('error', (error) => {
+        console.error('Erro no worker de documentos:', error.message);
+    });
+}
+
+module.exports = { documentQueue, documentWorker, isDocumentProcessingEnabled };

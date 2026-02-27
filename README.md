@@ -7,7 +7,7 @@ Backend em Node.js com Fastify, Prisma, BullMQ/Redis, OCR (Tesseract) e integra�
 ### 1) Instalar pré-requisitos
 - **Node.js 20+** e npm
 - **PostgreSQL** ativo
-- **Redis** ativo
+- **Redis** ativo (somente se `ENABLE_DOCUMENT_PROCESSING=true`)
 
 > Se quiser subir rápido com Docker (opcional):
 
@@ -25,14 +25,15 @@ cp .env.example .env
 No `.env`, confira principalmente:
 - `DATABASE_URL`
 - `JWT_SECRET`
-- `REDIS_URL`
-- `OPENAI_API_KEY`
+- `REDIS_URL` (obrigatória quando `ENABLE_DOCUMENT_PROCESSING=true`)
+- `OPENAI_API_KEY` (obrigatória quando `ENABLE_DOCUMENT_PROCESSING=true`)
 
 Também são usadas:
 - `STRIPE_SECRET_KEY`
 - `FRONTEND_URL`
 - `WHATSAPP_VERIFY_TOKEN`
 - `PORT`
+- `ENABLE_DOCUMENT_PROCESSING` (`true` para ativar fila/worker de documentos)
 
 ### 3) Instalar dependências
 
@@ -69,9 +70,9 @@ Resposta esperada: JSON com status online.
 - `POST /register` cria tenant + admin inicial.
 - `POST /login` autenticação.
 - `GET /api/me` usuário autenticado.
-- `POST /api/documents/upload` upload e enfileiramento de processamento.
+- `POST /api/documents/upload` upload e enfileiramento de processamento (retorna 503 quando o processamento estiver desativado).
 
 ## Observações importantes
 
-- O endpoint `/api/analytics` hoje depende de consulta Prisma que usa relacionamento de `Document -> Company` não declarado no schema atual; isso pode falhar em runtime até o schema ser ajustado.
+- `OPENAI_API_KEY` é exigida apenas para o processamento/classificação por IA; a API pode subir sem ela, mas o worker de documentos falhará ao classificar/extrair dados.
 - O projeto usa fallback de segredos para desenvolvimento, mas em ambiente real é recomendado definir todas as variáveis sensíveis explicitamente.

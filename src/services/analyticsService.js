@@ -6,16 +6,22 @@ const analyticsService = {
      * Retorna métricas gerais do Tenant (Escritório).
      */
     async getTenantMetrics(tenantId) {
+        const companies = await prisma.company.findMany({
+            where: { tenantId },
+            select: { id: true }
+        });
+        const companyIds = companies.map((company) => company.id);
+
         const [clientsCount, docsCount, pendingTasks] = await Promise.all([
             prisma.company.count({ where: { tenantId } }),
             prisma.document.count({
-                where: {
-                    company: { tenantId }
-                }
+                where: companyIds.length > 0 ? {
+                    companyId: { in: companyIds }
+                } : undefined
             }),
             prisma.process.count({
                 where: {
-                    company: { tenantId },
+                    companyId: { in: companyIds },
                     status: 'PENDING'
                 }
             })
