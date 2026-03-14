@@ -1,0 +1,26 @@
+{
+    "info": {
+        "title": "eCAC API",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/situacao-fiscal": {
+            "get": {
+                "summary": "Consultar situação fiscal da empresa no eCAC",
+                "operationId": "consultarSituacaoFiscal"
+            }
+        },
+        "/dctfweb/consultar": {
+            "post": {
+                "summary": "Consultar declarações DCTFWeb enviadas",
+                "operationId": "consultarDCTFWeb"
+            }
+        },
+        "/comprovante-inscricao": {
+            "get": {
+                "summary": "Emitir comprovante de inscrição e de situação cadastral",
+                "operationId": "emitirComprovante"
+            }
+        }
+    }
+}

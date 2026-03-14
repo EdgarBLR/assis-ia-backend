@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fastify = require('fastify')({ logger: true });
 const bcrypt = require('bcryptjs');
 const path = require('path');
@@ -193,27 +194,8 @@ fastify.get('/api/analytics', { preHandler: [fastify.authenticate] }, async (req
     return analyticsService.getTenantMetrics(request.user.tenantId);
 });
 
-// WhatsApp Webhook Placeholder
-fastify.get('/webhook', async (request, reply) => {
-    const mode = request.query['hub.mode'];
-    const token = request.query['hub.verify_token'];
-    const challenge = request.query['hub.challenge'];
-
-    if (mode && token === (process.env.WHATSAPP_VERIFY_TOKEN || 'assis_os_token')) {
-        return challenge;
-    }
-    reply.status(403).send();
-});
-
-fastify.post('/webhook', async (request, reply) => {
-    const body = request.body;
-    console.log('WhatsApp Webhook received:', JSON.stringify(body, null, 2));
-
-    // TODO: Extrair mídia do WhatsApp, salvar e adicionar na fila
-    // Isso requer integração com a API da Meta para baixar o arquivo
-
-    return { status: 'RECEIVED' };
-});
+// Registrando Rota Oficial de Webhooks (Z-API, N8N, etc)
+fastify.register(require('./src/routes/webhooks'), { prisma });
 
 // Server Start
 const start = async () => {

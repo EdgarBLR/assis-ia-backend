@@ -1,7 +1,7 @@
 const { Queue, Worker } = require('bullmq');
 const IORedis = require('ioredis');
 const ocrService = require('../services/ocrService');
-const aiService = require('../services/aiService');
+const aiService = require('../document-engine/aiService');
 const prisma = require('../lib/prisma');
 const isDocumentProcessingEnabled = process.env.ENABLE_DOCUMENT_PROCESSING === 'true';
 
