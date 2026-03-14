@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 model Tenant {
@@ -27,6 +29,7 @@ model User {
   createdAt DateTime @default(now())
   company   Company? @relation(fields: [companyId], references: [id])
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  chatMessages ChatMessage[]
 }
 
 model Company {
@@ -40,6 +43,9 @@ model Company {
   tenant        Tenant         @relation(fields: [tenantId], references: [id])
   processes     Process[]
   subscriptions Subscription[]
+  rpaTasks      RPATask[]
+  transactions  Transaction[]
+  taxRecords    TaxRecord[]
   users         User[]
 }
 
@@ -74,10 +80,74 @@ model Step {
 }
 
 model Document {
+  id         String   @id @default(uuid())
+  fileName   String
+  type       String
+  status     String   @default("UPLOADED") // 'UPLOADED', 'PROCESSED', 'PENDING_REVIEW', 'APPROVED_BY_HUMAN'
+  confidence Float?
+  stepId     String?
+  companyId  String?
+  createdAt  DateTime @default(now())
+}
+
+model ChatMessage {
   id        String   @id @default(uuid())
-  fileName  String
-  type      String
-  stepId    String?
-  companyId String?
+  userId    String
+  role      String   // 'user' or 'assistant'
+  content   String
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+model RPATask {
+  id        String   @id @default(uuid())
+  type      String   // EX: 'EMITIR_GUIA_DAS', 'CONSULTA_CNPJ'
+  status    String   @default("PENDING")
+  data      Json
+  result    Json?
+  error     String?
+  companyId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+}
+model Transaction {
+  id          String   @id @default(uuid())
+  amount      Float
+  date        DateTime
+  description String
+  type        String   // 'INCOME' or 'EXPENSE'
+  status      String   @default("PENDING") // 'PENDING', 'RECONCILED'
+  companyId   String
+  categoryId  String?
+  company     Company  @relation(fields: [companyId], references: [id])
+  category    AccountingCategory? @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model AccountingCategory {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  description  String?
+  transactions Transaction[]
+}
+
+model TaxRecord {
+  id          String   @id @default(uuid())
+  period      String   // EX: "2026-03"
+  revenue     Float
+  taxAmount   Float
+  type        String   // EX: "DAS"
+  status      String   @default("CALCULATED") // 'CALCULATED', 'PAID'
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model DocumentEmbedding {
+  id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentId String
+  content    String
+  embedding  Unsupported("vector")?
+  metadata   Json?
+  createdAt  DateTime               @default(now())
 }

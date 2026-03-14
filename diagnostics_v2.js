@@ -15,8 +15,8 @@ console.log("notion.databases Prototype Keys:", Object.getOwnPropertyNames(proto
 async function test() {
     try {
         console.log("Attempting query again...");
-        const response = await notion.databases.query({
-            database_id: process.env.NOTION_DATABASE_ID,
+        const response = await notion.dataSources.query({
+            data_source_id: process.env.NOTION_DATABASE_ID,
         });
         console.log("Success! Results count:", response.results.length);
     } catch (error) {

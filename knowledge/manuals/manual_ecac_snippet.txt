@@ -1,0 +1,4 @@
+Manual de Operação eCAC (Resumo)
+1. Para consultar a situação fiscal, acesse o menu Situação Fiscal e aguarde o processamento.
+2. A consulta de DCTFWeb permite visualizar declarações enviadas e pendências de INSS.
+3. A emissão de comprovantes exige o CNPJ da matriz ou filial.

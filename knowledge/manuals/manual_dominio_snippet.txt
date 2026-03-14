@@ -1,0 +1,4 @@
+Manual Domínio ERP (Resumo)
+1. A folha de pagamento pode ser consultada no módulo Social -> Relatórios -> Folha.
+2. Lançamentos contábeis devem ser filtrados por período e conta contábil.
+3. O cadastro da empresa deve estar atualizado para evitar erros de integração.

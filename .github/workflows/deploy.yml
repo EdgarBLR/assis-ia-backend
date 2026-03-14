@@ -1,0 +1,39 @@
+name: Deploy to Hostinger VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            # Folder where your app will live on the VPS
+            cd ~/assis-ia-backend
+            
+            # Pull latest code from GitHub
+            git pull origin main
+            
+            # Install dependencies
+            npm install
+            
+            # Generate Prisma Client
+            npx prisma generate
+            
+            # Restart or Start the application using PM2
+            pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
+            
+            # Save PM2 process list so it restarts on system reboot
+            pm2 save

@@ -1,0 +1,26 @@
+{
+    "info": {
+        "title": "Domínio API",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/folha/consultar": {
+            "post": {
+                "summary": "Consultar dados da folha de pagamento no Domínio",
+                "operationId": "consultarFolha"
+            }
+        },
+        "/lancamentos/contabeis": {
+            "get": {
+                "summary": "Listar lançamentos contábeis de um período",
+                "operationId": "listarLancamentos"
+            }
+        },
+        "/empresas/cadastro": {
+            "get": {
+                "summary": "Verificar dados cadastrais da empresa no ERP",
+                "operationId": "verificarCadastro"
+            }
+        }
+    }
+}
