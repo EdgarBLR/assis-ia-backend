@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fastify = require('fastify')({ logger: true });
 const bcrypt = require('bcryptjs');
 const path = require('path');
