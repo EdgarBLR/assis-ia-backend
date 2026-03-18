@@ -1,7 +1,7 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const fastify = require('fastify')({ logger: true });
 const bcrypt = require('bcryptjs');
-const path = require('path');
 const fs = require('fs');
 const util = require('util');
 const { pipeline } = require('stream');
